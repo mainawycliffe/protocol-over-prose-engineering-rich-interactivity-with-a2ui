@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "slidev --open",
-    "build": "slidev build --out docs",
+    "build": "slidev build",
     "export": "slidev export",
     "export:pdf": "slidev export --format pdf"
   },
