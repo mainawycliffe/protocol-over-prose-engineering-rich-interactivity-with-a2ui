@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "slidev --open",
-    "build": "slidev build",
+    "build": "slidev build --out docs",
     "export": "slidev export",
     "export:pdf": "slidev export --format pdf"
   },
@@ -14,5 +14,8 @@
     "@slidev/theme-default": "*",
     "@slidev/theme-seriph": "*",
     "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "playwright-chromium": "^1.60.0"
   }
 }
