@@ -37,7 +37,7 @@ author: Maina Wycliffe
 </div>
 
 <div class="fixed bottom-10 left-0 right-0 text-center text-xs dim font-mono tracking-wider">
-  Maina Wycliffe · @mainawycliffe &nbsp;·&nbsp; Lightning talk · 15 min
+  Maina Wycliffe · @mainawycliffe &nbsp;·&nbsp; Lightning talk
 </div>
 
 <!--
@@ -159,7 +159,7 @@ layout: default
 
 <div class="chip">04 · The shape of the contract</div>
 
-# A contract is just <span class="accent">JSON Schema</span>.
+# A contract is just a <span class="accent">JSON Schema</span>.
 
 ````md magic-move {lines: true}
 ```json
@@ -279,7 +279,7 @@ return renderUI(result.data)            // typed, trusted, branded
 ````
 
 <div class="mt-4 dim text-base">
-Validate the output, ensure the model is following the contract. Fail gracefully or retry when it doesn't.
+Validate the output, ensure the model followed the contract. Fail gracefully or retry when it doesn't.
 </div>
 
 <!--
@@ -319,7 +319,7 @@ return renderUI(output)
 ```
 
 <div class="mt-4 dim text-base">
-Genkit ships the schema — <span class="accent">descriptions and all</span> — to the model, then parses the response. One schema, two jobs.
+The schema becomes part of the model's context window. Genkit validates the output against it, and gives you back a typed result. No more JSON.parse or manual checks.
 </div>
 
 <!--
@@ -360,8 +360,7 @@ flowchart LR
 ```
 
 <div class="mt-6 dim text-base">
-The agent never touches your design system. The renderer does.
-That's the whole game.
+The agent never has to worry about your design system. The renderer does. That's the whole game.
 </div>
 
 <!--
@@ -429,7 +428,7 @@ layout: center
 </div>
 
 <div class="mt-4 dim text-sm text-center">
-  Same JSON shape from the previous slide — rendered into a real Angular component tree.
+  We built an A2UI renderer for Angular. The agent still emits the same JSON; We use Angular's dynamic components to render it natively - fully interactive. This is a demo of it in action.
 </div>
 
 <!--
@@ -449,8 +448,10 @@ layout: default
 <div class="grid grid-cols-2 gap-x-12 gap-y-6 mt-8 text-lg">
 
 <div v-click>
-<div class="accent font-bold mb-1">→ Composable UIs</div>
-<div class="dim">Agents become components, not chat logs.</div>
+  <div class="accent font-bold mb-1">→ Composable UIs</div>
+  <div class="dim">
+    Agents declare intent, renderers compose the UI.
+  </div>
 </div>
 
 <div v-click>
