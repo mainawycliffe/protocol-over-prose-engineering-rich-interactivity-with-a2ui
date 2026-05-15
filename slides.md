@@ -203,7 +203,134 @@ changing the channel.
 layout: default
 ---
 
-<div class="chip">05 · The render layer</div>
+<div class="chip">05 · Enforcing the contract</div>
+
+# Validate with <span class="accent">Zod</span>.
+
+````md magic-move {lines: true}
+```ts
+import { z } from 'zod'
+
+const UINode = z.object({
+  type: z.literal('text'),
+  content: z.string(),
+})
+```
+
+```ts
+import { z } from 'zod'
+
+const UINode = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('text'),
+    content: z.string(),
+  }),
+  z.object({
+    type: z.literal('table'),
+    columns: z.array(z.string()),
+    rows: z.array(z.array(z.string())),
+  }),
+])
+```
+
+```ts
+import { z } from 'zod'
+
+const Column = z.object({
+  key: z.string().describe('The row property to read. Must exist on every row.'),
+  label: z.string().describe('Human-readable header text shown above the column.'),
+  sortable: z.boolean().optional()
+    .describe('Set true when the user should be able to sort by this column.'),
+  filter: z.enum(['text', 'select']).optional()
+    .describe('Use "select" for low-cardinality fields, "text" for free-text.'),
+})
+
+const UINode = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('text'),
+    content: z.string(),
+  }).describe('Use when a plain prose answer is enough. Renders as markdown.'),
+
+  z.object({
+    type: z.literal('table'),
+    columns: z.array(Column),
+    rows: z.array(z.record(z.string(), z.any())),
+    actions: z.array(
+      z.object({ id: z.string(), label: z.string() })
+    ).optional()
+      .describe('Optional row actions. Emit only if the user can act on a row.'),
+  }).describe('Use when the data has repeating structure the user may want to sort, filter, or act on.'),
+]).describe('Every UI element you are allowed to emit. Pick exactly one per response.')
+```
+
+```ts
+// at the render boundary
+const result = UINode.safeParse(agentPayload)
+
+if (!result.success) {
+  return renderFallback(result.error)   // markdown / "I don't know"
+}
+
+return renderUI(result.data)            // typed, trusted, branded
+```
+````
+
+<div class="mt-4 dim text-base">
+Validate the output, ensure the model is following the contract. Fail gracefully or retry when it doesn't.
+</div>
+
+<!--
+This is the missing piece from the previous slide.
+JSON Schema is the spec; Zod is how we actually enforce it
+at the render boundary. safeParse is the gate — if it fails,
+we degrade gracefully. This is the validator from the
+"Don't blindly render" slide, in code.
+-->
+
+---
+layout: default
+---
+
+<div class="chip">06 · Wiring the agent</div>
+
+# Generate with <span class="accent">Genkit</span>.
+
+```ts {all|3|10|13|17|all}
+import { genkit } from 'genkit'
+import { googleAI } from '@genkit-ai/google-genai'
+import { UINode } from './ui-schema'   // ← the Zod schema from the previous slide
+
+const ai = genkit({
+  plugins: [googleAI()],
+  model: googleAI.model('gemini-2.5-flash'),
+})
+
+const { output } = await ai.generate({
+  prompt: 'Show me my last 10 sign-ups.',
+  output: { schema: UINode },
+})
+
+// `output` is typed as UINode and already validated.
+// Hand it straight to the renderer — no extra parsing.
+return renderUI(output)
+```
+
+<div class="mt-4 dim text-base">
+Genkit ships the schema — <span class="accent">descriptions and all</span> — to the model, then parses the response. One schema, two jobs.
+</div>
+
+<!--
+The describe() strings from the previous slide become the LLM's
+instructions when Genkit serializes the Zod schema for the model.
+Genkit handles the round trip: serialize → call → parse → retry
+on failure. Your code only ever sees a validated UINode.
+-->
+
+---
+layout: default
+---
+
+<div class="chip">07 · The render layer</div>
 
 # How does the JSON become a UI?
 
@@ -244,7 +371,7 @@ layout: two-cols
 layoutClass: "gap-12"
 ---
 
-<div class="chip">06 · Live shape</div>
+<div class="chip">08 · Live shape</div>
 
 # JSON in. UI out.
 
@@ -278,10 +405,41 @@ The agent could have emitted this. The renderer did the rest.
 -->
 
 ---
+layout: center
+---
+
+<div class="chip">09 · In the wild</div>
+
+<div class="text-2xl mb-5 text-center">
+  Same contract. <span class="accent">Real framework.</span>
+</div>
+
+<div class="flex justify-center">
+  <video
+    src="/a2ui-angular.mp4"
+    autoplay
+    muted
+    loop
+    playsinline
+    class="rounded-lg border border-[#25292f] max-w-2xl w-full shadow-2xl"
+  ></video>
+</div>
+
+<div class="mt-4 dim text-sm text-center">
+  Same JSON shape from the previous slide — rendered into a real Angular component tree.
+</div>
+
+<!--
+This is the punchline of the "live shape" beat: the contract isn't
+tied to one framework or one renderer. The agent emits the same JSON;
+Angular renders it natively.
+-->
+
+---
 layout: default
 ---
 
-<div class="chip">07 · Why this matters</div>
+<div class="chip">10 · Why this matters</div>
 
 # What you actually win
 
@@ -318,26 +476,21 @@ becoming a first-class part of the product surface.
 layout: default
 ---
 
-<div class="chip">08 · Watch-outs</div>
+<div class="chip">11 · Watch-outs</div>
 
 # Don't <span class="amber">blindly</span> render.
 
-```mermaid {scale: 0.8}
-sequenceDiagram
-  autonumber
-  participant L as LLM
-  participant V as Validator
-  participant R as Renderer
-  participant U as User
-  L->>V: emit UI tree
-  V->>V: schema check
-  alt valid
-    V->>R: render
-    R->>U: ✓ component
-  else invalid / unknown type
-    V->>R: fallback (markdown / "I don't know")
-    R->>U: graceful degrade
-  end
+```mermaid {scale: 0.95}
+flowchart LR
+  L([LLM]) --> V{Validator}
+  V -->|valid| R[Renderer] --> U([User])
+  V -->|invalid| F[Fallback]
+  F --> U
+  style L fill:#0b0d10,stroke:#00d486,color:#e6e8eb
+  style V fill:#11151a,stroke:#ffb86b,color:#e6e8eb
+  style R fill:#0b0d10,stroke:#7cdfff,color:#e6e8eb
+  style F fill:#11151a,stroke:#6b7280,color:#a8b1bf
+  style U fill:#0b0d10,stroke:#00d486,color:#e6e8eb
 ```
 
 <div class="grid grid-cols-3 gap-3 mt-6 text-base">
@@ -356,7 +509,7 @@ layout: center
 class: text-center
 ---
 
-<div class="chip">09 · Takeaway</div>
+<div class="chip">12 · Takeaway</div>
 
 # Stop writing prose.
 
