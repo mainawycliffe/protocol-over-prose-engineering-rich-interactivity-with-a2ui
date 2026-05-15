@@ -18,6 +18,14 @@ class: text-center
 author: Maina Wycliffe
 ---
 
+<div class="fixed top-6 right-6 z-10">
+  <img
+    src="/portrait.jpg"
+    alt="Maina Wycliffe"
+    class="w-28 h-28 rounded-full object-cover border-2 border-[#00d486] shadow-lg"
+  />
+</div>
+
 <div class="w-72 mx-auto mb-6 opacity-95">
   <TextToTreeMorph />
 </div>
