@@ -511,6 +511,11 @@ class: text-center
 
 <div class="chip">12 · Takeaway</div>
 
+<div class="fixed top-6 right-6 flex flex-col items-center gap-1 z-10">
+  <img src="/slides-qr.png" alt="Scan for slides" class="w-28 h-28 rounded-md bg-white p-1.5" />
+  <div class="text-[10px] dim font-mono tracking-wider">scan for slides</div>
+</div>
+
 # Stop writing prose.
 
 # Start shipping <span class="accent">contracts.</span>
@@ -520,7 +525,7 @@ Markdown was the bridge. <span class="accent">Protocol</span> is the road.
 </div>
 
 <div class="mt-16 text-sm dim font-mono">
-  Maina Wycliffe · @mainawycliffe · slides at &lt;link&gt;
+  Maina Wycliffe · @mainawycliffe
 </div>
 
 <!--
