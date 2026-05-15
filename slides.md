@@ -241,24 +241,21 @@ const UINode = z.discriminatedUnion('type', [
 ])
 ```
 
-```ts
+```ts 
 import { z } from 'zod'
 
 const Column = z.object({
-  key: z.string().describe('The row property to read. Must exist on every row.'),
-  label: z.string().describe('Human-readable header text shown above the column.'),
+  key: z.string().describe('The row property to read.'),
+  label: z.string().describe('The column header label.'),
   sortable: z.boolean().optional()
-    .describe('Set true when the user should be able to sort by this column.'),
-  filter: z.enum(['text', 'select']).optional()
-    .describe('Use "select" for low-cardinality fields, "text" for free-text.'),
+    .describe('Whether the UI should allow sorting by this column.')
 })
 
 const UINode = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('text'),
     content: z.string(),
-  }).describe('Use when a plain prose answer is enough. Renders as markdown.'),
-
+  }),
   z.object({
     type: z.literal('table'),
     columns: z.array(Column),
@@ -266,9 +263,7 @@ const UINode = z.discriminatedUnion('type', [
     actions: z.array(
       z.object({ id: z.string(), label: z.string() })
     ).optional()
-      .describe('Optional row actions. Emit only if the user can act on a row.'),
-  }).describe('Use when the data has repeating structure the user may want to sort, filter, or act on.'),
-]).describe('Every UI element you are allowed to emit. Pick exactly one per response.')
+  })
 ```
 
 ```ts
@@ -303,7 +298,7 @@ layout: default
 
 # Generate with <span class="accent">Genkit</span>.
 
-```ts {all|3|10|13|17|all}
+```ts {3|10|12|17|all}
 import { genkit } from 'genkit'
 import { googleAI } from '@genkit-ai/google-genai'
 import { UINode } from './ui-schema'   // ← the Zod schema from the previous slide
@@ -459,8 +454,8 @@ layout: default
 </div>
 
 <div v-click>
-<div class="accent font-bold mb-1">→ Designers stay in control</div>
-<div class="dim">Brand lives in the renderer, not the prompt.</div>
+<div class="accent font-bold mb-1">→ Consistent UIs</div>
+<div class="dim">Design decisions remain in your hands.</div>
 </div>
 
 <div v-click>
